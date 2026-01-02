@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Neon Air FX - Hoki Udara</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS untuk Tampilan Modern & Neon */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            /* Hitam pekat */
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            /* Mencegah scroll */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            touch-action: none;
+            /* Mencegah zoom/scroll di HP */
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.1);
+            border: 2px solid #333;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            cursor: none;
+            /* Sembunyikan kursor saat di dalam canvas */
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            /* Agar klik tembus ke canvas */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 100px;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor;
+            z-index: 10;
+        }
+
+        #player-score {
+            color: #0ff;
+        }
+
+        /* Cyan */
+        #ai-score {
+            color: #f0f;
+        }
+
+        /* Magenta */
+
+        /* Tombol Pause di Pojok Kanan Atas */
+        #pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            border-radius: 50%;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            pointer-events: auto;
+            /* Agar bisa diklik */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            transition: all 0.2s;
+        }
+
+        #pause-btn:hover {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        /* Overlay Menu (Main & Pause) */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s;
+        }
+
+        /* Khusus Pause Overlay - Sedikit lebih transparan */
+        #pause-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 40;
+            /* Di atas segalanya */
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #0ff, #f0f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        p {
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn-vertical {
+            flex-direction: column;
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid #0ff;
+            color: #0ff;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            transition: all 0.2s ease;
+            border-radius: 5px;
+            pointer-events: auto;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: #0ff;
+            color: #000;
+            box-shadow: 0 0 30px #0ff;
+            transform: scale(1.05);
+        }
+
+        /* Warna khusus tombol kesulitan */
+        .btn.easy {
+            border-color: #0f0;
+            color: #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .btn.easy:hover {
+            background: #0f0;
+            color: #000;
+            box-shadow: 0 0 30px #0f0;
+        }
+
+        .btn.medium {
+            border-color: #ff0;
+            color: #ff0;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+        }
+
+        .btn.medium:hover {
+            background: #ff0;
+            color: #000;
+            box-shadow: 0 0 30px #ff0;
+        }
+
+        .btn.hard {
+            border-color: #f00;
+            color: #f00;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .btn.hard:hover {
+            background: #f00;
+            color: #000;
+            box-shadow: 0 0 30px #f00;
+        }
+
+        /* Tombol di menu pause */
+        .btn.resume {
+            border-color: #fff;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn.resume:hover {
+            background: #fff;
+            color: #000;
+        }
+
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Instruksi Mobile */
+        .mobile-hint {
+            display: none;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .score-board {
+                gap: 40px;
+                font-size: 32px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 200px;
+                padding: 12px;
+            }
+
+            .mobile-hint {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui-layer">
+            <div class="score-board">
+                <div id="player-score">0</div>
+                <div id="ai-score">0</div>
+            </div>
+            <!-- Tombol Pause -->
+            <button id="pause-btn" class="hidden" onclick="togglePause()">II</button>
+        </div>
+
+        <!-- Menu Utama / Game Over -->
+        <div id="menu-overlay" class="overlay">
+            <h1>NEON AIR HOCKEY</h1>
+            <p id="menu-message">Gunakan Mouse/Jari untuk memukul.<br>Skor 7 untuk menang!</p>
+
+            <p style="margin-bottom: 10px; font-size: 1rem; color: #fff;">PILIH TINGKAT KESULITAN:</p>
+            <div class="btn-group" id="difficulty-buttons">
+                <button class="btn easy" onclick="startGame('easy')">MUDAH</button>
+                <button class="btn medium" onclick="startGame('medium')">SEDANG</button>
+                <button class="btn hard" onclick="startGame('hard')">SULIT</button>
+            </div>
+
+            <button class="btn hidden" id="restart-btn" onclick="showDifficultyMenu()">MAIN LAGI</button>
+
+            <div class="mobile-hint">Tips: Gunakan mode landscape untuk pengalaman terbaik</div>
+        </div>
+
+        <!-- Menu Pause -->
+        <div id="pause-overlay" class="overlay hidden">
+            <h2>TERJEDA</h2>
+            <div class="btn-group btn-vertical">
+                <button class="btn resume" onclick="togglePause()">LANJUTKAN</button>
+                <button class="btn hard" onclick="quitToMenu()">KELUAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI GAME ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimasi performa
+
+        const uiScores = {
+            player: document.getElementById('player-score'),
+            ai: document.getElementById('ai-score')
+        };
+        const menuOverlay = document.getElementById('menu-overlay');
+        const pauseOverlay = document.getElementById('pause-overlay');
+        const menuTitle = menuOverlay.querySelector('h1');
+        const menuMessage = document.getElementById('menu-message');
+        const diffButtons = document.getElementById('difficulty-buttons');
+        const restartBtn = document.getElementById('restart-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+
+        // State Game
+        let isPlaying = false;
+        let isPaused = false;
+        let animationId;
+        const WINNING_SCORE = 7;
+        let currentDifficulty = 'medium'; // Default
+
+        // Pengaturan Kesulitan
+        const difficultySettings = {
+            easy: {
+                aiSpeedRatio: 0.45,  // AI lambat
+                puckSpeedRatio: 0.8  // Bola agak pelan
+            },
+            medium: {
+                aiSpeedRatio: 0.75,  // AI standar
+                puckSpeedRatio: 1.0  // Bola normal
+            },
+            hard: {
+                aiSpeedRatio: 0.95,  // AI sangat cepat
+                puckSpeedRatio: 1.2  // Bola kencang
+            }
+        };
+
+        // Dimensi (akan diupdate saat resize)
+        let width, height;
+
+        // Objek Partikel (Efek Visual)
+        let particles = [];
+
+        // Definisi Objek Game
+        const paddleProps = {
+            radius: 0, // dihitung dinamis
+            colorPlayer: '#0ff', // Cyan
+            colorAI: '#f0f'      // Magenta
+        };
+
+        const player = {
+            x: 0, y: 0, score: 0,
+            color: paddleProps.colorPlayer
+        };
+
+        const ai = {
+            x: 0, y: 0, score: 0,
+            color: paddleProps.colorAI,
+            speed: 0 // Kecepatan AI (dinamis)
+        };
+
+        const puck = {
+            x: 0, y: 0,
+            radius: 0,
+            vx: 0, vy: 0,
+            speed: 0,
+            maxSpeed: 0,
+            baseMaxSpeed: 0, // Kecepatan dasar sebelum multiplier difficulty
+            color: '#0f0' // Hijau Neon
+        };
+
+        // --- SISTEM AUDIO (OFFLINE / WEB AUDIO API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        const SFX = {
+            playTone: (freq, type, duration, vol = 0.1) => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                // Envelope suara
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            },
+            hitPaddle: () => {
+                SFX.playTone(600, 'sine', 0.1, 0.1);
+                SFX.playTone(1200, 'triangle', 0.05, 0.05);
+            },
+            hitWall: () => {
+                SFX.playTone(150, 'square', 0.1, 0.05);
+            },
+            score: (isPlayer) => {
+                if (isPlayer) {
+                    setTimeout(() => SFX.playTone(440, 'sine', 0.2, 0.1), 0);
+                    setTimeout(() => SFX.playTone(554, 'sine', 0.2, 0.1), 100);
+                    setTimeout(() => SFX.playTone(659, 'sine', 0.4, 0.1), 200);
+                } else {
+                    setTimeout(() => SFX.playTone(300, 'sawtooth', 0.2, 0.05), 0);
+                    setTimeout(() => SFX.playTone(200, 'sawtooth', 0.4, 0.05), 150);
+                }
+            }
+        };
+
+        // --- SISTEM PARTIKEL ---
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3 + 1;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.03 + 0.02;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+        function spawnParticles(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // --- INISIALISASI & RESIZE ---
+        function resize() {
+            const maxWidth = window.innerWidth - 20;
+            const maxHeight = window.innerHeight - 20;
+            canvas.width = maxWidth;
+            canvas.height = maxHeight;
+
+            width = canvas.width;
+            height = canvas.height;
+
+            const scaleBase = Math.min(width, height);
+
+            paddleProps.radius = scaleBase * 0.06;
+            puck.radius = scaleBase * 0.035;
+
+            // Set Base Speed berdasarkan lebar layar
+            puck.baseMaxSpeed = width * 0.025;
+
+            // Terapkan difficulty multiplier
+            applyDifficultySettings();
+
+            if (!isPlaying) resetPositions();
+        }
+
+        function applyDifficultySettings() {
+            const settings = difficultySettings[currentDifficulty];
+
+            // Hitung max speed puck berdasarkan level
+            puck.maxSpeed = puck.baseMaxSpeed * settings.puckSpeedRatio;
+
+            // Hitung kecepatan AI berdasarkan max speed puck
+            ai.speed = puck.maxSpeed * settings.aiSpeedRatio;
+        }
+
+        function resetPositions() {
+            player.x = width * 0.1;
+            player.y = height / 2;
+            ai.x = width * 0.9;
+            ai.y = height / 2;
+            resetPuck();
+        }
+
+        function resetPuck(scorer = null) {
+            puck.x = width / 2;
+            puck.y = height / 2;
+            const direction = scorer === 'player' ? 1 : (scorer === 'ai' ? -1 : (Math.random() > 0.5 ? 1 : -1));
+
+            puck.vx = direction * (puck.maxSpeed * 0.5);
+            puck.vy = (Math.random() * puck.maxSpeed * 0.5) - (puck.maxSpeed * 0.25);
+        }
+
+        window.addEventListener('resize', resize);
+
+        // --- INPUT HANDLING ---
+        function movePaddle(e) {
+            // Hanya izinkan gerak jika sedang bermain dan TIDAK pause
+            if (!isPlaying || isPaused) return;
+
+            let clientX, clientY;
+            if (e.type.includes('touch')) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const rect = canvas.getBoundingClientRect();
+            let mouseX = clientX - rect.left;
+            let mouseY = clientY - rect.top;
+
+            if (mouseX < paddleProps.radius) mouseX = paddleProps.radius;
+            if (mouseX > (width / 2) - paddleProps.radius) mouseX = (width / 2) - paddleProps.radius;
+            if (mouseY < paddleProps.radius) mouseY = paddleProps.radius;
+            if (mouseY > height - paddleProps.radius) mouseY = height - paddleProps.radius;
+
+            player.x = mouseX;
+            player.y = mouseY;
+        }
+        canvas.addEventListener('mousemove', movePaddle);
+        canvas.addEventListener('touchmove', movePaddle, { passive: false });
+        canvas.addEventListener('touchstart', (e) => {
+            if (isPlaying) e.preventDefault();
+            movePaddle(e);
+        }, { passive: false });
+
+        // --- SISTEM PAUSE ---
+        function togglePause() {
+            if (!isPlaying) return; // Tidak bisa pause jika game belum mulai
+
+            isPaused = !isPaused;
+
+            if (isPaused) {
+                pauseOverlay.classList.remove('hidden');
+                // Tombol pause (ikon) bisa disembunyikan atau dibiarkan
+                // pauseBtn.classList.add('hidden'); 
+            } else {
+                pauseOverlay.classList.add('hidden');
+                // pauseBtn.classList.remove('hidden');
+            }
+        }
+
+        function quitToMenu() {
+            isPaused = false;
+            isPlaying = false;
+
+            pauseOverlay.classList.add('hidden');
+            pauseBtn.classList.add('hidden'); // Sembunyikan tombol pause di menu utama
+
+            showDifficultyMenu(); // Kembali ke menu utama
+        }
+
+        // --- LOGIKA GAME ---
+        function update() {
+            // JIKA PAUSE, LEWATI LOGIKA UPDATE
+            if (isPaused) return;
+
+            // AI Logic
+            let targetY = puck.y;
+            // Kesalahan AI: Tambah jitter pada level mudah
+            let errorMargin = 0;
+            if (currentDifficulty === 'easy') errorMargin = 60;
+            else if (currentDifficulty === 'medium') errorMargin = 30;
+            else errorMargin = 10;
+
+            if (Math.random() < 0.1) targetY += (Math.random() * errorMargin * 2 - errorMargin);
+
+            const dy = targetY - ai.y;
+            if (Math.abs(dy) > ai.speed) {
+                ai.y += Math.sign(dy) * ai.speed;
+            } else {
+                ai.y += dy;
+            }
+
+            if (ai.y < paddleProps.radius) ai.y = paddleProps.radius;
+            if (ai.y > height - paddleProps.radius) ai.y = height - paddleProps.radius;
+
+            let targetX = width * 0.9;
+            // AI agresif hanya di hard/medium
+            if (currentDifficulty !== 'easy' && puck.x > width / 2 && puck.vx > 0) {
+                targetX = width * 0.8;
+            }
+            ai.x += (targetX - ai.x) * 0.1;
+
+            // Puck Movement
+            puck.x += puck.vx;
+            puck.y += puck.vy;
+
+            // Wall Collision
+            if (puck.y - puck.radius < 0) {
+                puck.y = puck.radius;
+                puck.vy *= -1;
+                SFX.hitWall();
+                spawnParticles(puck.x, puck.y, '#fff', 5);
+            } else if (puck.y + puck.radius > height) {
+                puck.y = height - puck.radius;
+                puck.vy *= -1;
+                SFX.hitWall();
+                spawnParticles(puck.x, puck.y, '#fff', 5);
+            }
+
+            // Goal Check
+            if (puck.x + puck.radius < 0) {
+                score('ai');
+            } else if (puck.x - puck.radius > width) {
+                score('player');
+            }
+
+            particles.forEach((p, index) => {
+                p.update();
+                if (p.life <= 0) particles.splice(index, 1);
+            });
+
+            checkPaddleCollision(player);
+            checkPaddleCollision(ai);
+        }
+
+        function checkPaddleCollision(paddle) {
+            let dx = puck.x - paddle.x;
+            let dy = puck.y - paddle.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            let minDist = puck.radius + paddleProps.radius;
+
+            if (distance < minDist) {
+                SFX.hitPaddle();
+                let angle = Math.atan2(dy, dx);
+                let targetX = paddle.x + Math.cos(angle) * minDist;
+                let targetY = paddle.y + Math.sin(angle) * minDist;
+                puck.x = targetX;
+                puck.y = targetY;
+
+                let smashForce = 1.1;
+                let speed = puck.maxSpeed * smashForce;
+
+                puck.vx = Math.cos(angle) * speed;
+                puck.vy = Math.sin(angle) * speed;
+
+                spawnParticles(puck.x - (Math.cos(angle) * puck.radius), puck.y - (Math.sin(angle) * puck.radius), paddle.color, 15);
+            }
+        }
+
+        function score(scorer) {
+            spawnParticles(puck.x, puck.y, '#fff', 30);
+            if (scorer === 'player') {
+                player.score++;
+                uiScores.player.innerText = player.score;
+                SFX.score(true);
+            } else {
+                ai.score++;
+                uiScores.ai.innerText = ai.score;
+                SFX.score(false);
+            }
+            checkWin();
+            if (isPlaying) resetPuck(scorer);
+        }
+
+        function checkWin() {
+            if (player.score >= WINNING_SCORE || ai.score >= WINNING_SCORE) {
+                endGame(player.score >= WINNING_SCORE ? 'player' : 'ai');
+            }
+        }
+
+        function endGame(winner) {
+            isPlaying = false;
+            menuTitle.innerText = winner === 'player' ? "KAMU MENANG!" : "KOMPUTER MENANG!";
+            menuTitle.style.background = winner === 'player' ?
+                "linear-gradient(90deg, #0ff, #fff)" : "linear-gradient(90deg, #f0f, #fff)";
+            menuTitle.style.webkitBackgroundClip = "text";
+
+            menuMessage.innerText = "Pilih tingkat kesulitan untuk main lagi:";
+
+            // Tampilkan kembali tombol kesulitan, sembunyikan tombol restart tunggal
+            diffButtons.classList.remove('hidden');
+            restartBtn.classList.add('hidden');
+            pauseBtn.classList.add('hidden'); // Sembunyikan tombol pause
+
+            menuOverlay.classList.remove('hidden');
+        }
+
+        function showDifficultyMenu() {
+            // Reset UI menu ke awal
+            menuTitle.innerText = "NEON AIR HOCKEY";
+            menuTitle.style.background = "linear-gradient(90deg, #0ff, #f0f)";
+            menuTitle.style.webkitBackgroundClip = "text";
+            menuMessage.innerText = "Gunakan Mouse/Jari untuk memukul.\nSkor 7 untuk menang!";
+
+            diffButtons.classList.remove('hidden');
+            restartBtn.classList.add('hidden');
+            menuOverlay.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+        }
+
+        function startGame(level) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            currentDifficulty = level;
+
+            // Terapkan settingan baru
+            resize();
+
+            player.score = 0;
+            ai.score = 0;
+            uiScores.player.innerText = '0';
+            uiScores.ai.innerText = '0';
+
+            menuOverlay.classList.add('hidden');
+            pauseBtn.classList.remove('hidden'); // Munculkan tombol pause
+
+            isPlaying = true;
+            isPaused = false;
+            animate();
+        }
+
+        // --- RENDERING ---
+        function draw() {
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, width, height);
+
+            // Garis Lapangan
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(width / 2, height / 2, 100, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(0, height / 2, 120, -Math.PI / 2, Math.PI / 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(width, height / 2, 120, Math.PI / 2, -Math.PI / 2);
+            ctx.stroke();
+
+            ctx.shadowBlur = 20;
+
+            // Player
+            ctx.shadowColor = player.color;
+            ctx.fillStyle = '#000';
+            ctx.strokeStyle = player.color;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, paddleProps.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, paddleProps.radius * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // AI
+            ctx.shadowColor = ai.color;
+            ctx.fillStyle = '#000';
+            ctx.strokeStyle = ai.color;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(ai.x, ai.y, paddleProps.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = ai.color;
+            ctx.beginPath();
+            ctx.arc(ai.x, ai.y, paddleProps.radius * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Puck
+            ctx.shadowColor = puck.color;
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = puck.color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.shadowBlur = 10;
+            particles.forEach(p => p.draw(ctx));
+            ctx.shadowBlur = 0;
+        }
+
+        function animate() {
+            if (!isPlaying) return;
+
+            // Panggil update() hanya jika TIDAK pause
+            if (!isPaused) {
+                update();
+            }
+
+            // Draw tetap dipanggil agar tidak blank saat dipause
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        resize();
+        draw(); 
+    </script>
+</body>
+
+</html>

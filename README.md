@@ -4,7 +4,7 @@ Game Air Hockey berbasis web dengan tema modern neon, dibangun menggunakan HTML5
 
 ![Gameplay Neon Air FX](img-neon-air-fx.png)
 
-# 🌟 Fitur
+## 🌟 Fitur
 
 - Tema Neon Modern: Visual glow yang menarik dengan efek partikel saat terjadi tabrakan.
 - Responsif: Dapat dimainkan menggunakan Mouse (Desktop) atau Sentuhan Jari (Mobile/Tablet).
@@ -14,7 +14,7 @@ Game Air Hockey berbasis web dengan tema modern neon, dibangun menggunakan HTML5
 - Sistem Pause: Jeda permainan kapan saja.
 - Single File: Seluruh kode (HTML, CSS, JS) berada dalam satu file index.html.
 
-# 🚀 Cara Menjalankan (Lokal)
+## 🚀 Cara Menjalankan (Lokal)
 
 Karena game ini hanya terdiri dari satu file, Anda tidak perlu menginstall dependencies apa pun.
 1. Clone repositori ini atau download file index.html.
@@ -24,19 +24,19 @@ Karena game ini hanya terdiri dari satu file, Anda tidak perlu menginstall depen
 
 Ikuti instruksi di layar, dan Vercel akan otomatis mendeteksi file statis tersebut.
 
-# 🎮 Kontrol
+## 🎮 Kontrol
 
 - Desktop: Gerakkan mouse untuk mengendalikan pemukul (paddle) berwarna biru.
 - Mobile: Sentuh dan geser jari di layar untuk menggerakkan pemukul.
 - Tujuan: Cetak 7 gol ke gawang lawan untuk menang!
 
-# 🛠️ Teknologi
+## 🛠️ Teknologi
 
 - HTML5 Canvas
 - CSS3 (Flexbox & Animations)
 - Vanilla JavaScript (ES6+)
 - Web Audio API
 
-# 📝 Lisensi
+## 📝 Lisensi
 
 Proyek ini bersifat open-source dan bebas digunakan untuk pembelajaran atau modifikasi.

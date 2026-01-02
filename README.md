@@ -2,7 +2,7 @@
 
 Game Air Hockey berbasis web dengan tema modern neon, dibangun menggunakan HTML5 Canvas dan JavaScript murni. Game ini sepenuhnya self-contained dalam satu file HTML, ringan, responsif, dan memiliki efek suara sintesis (offline).
 
-![Gameplay Neon 2048](img-neon-air-fx.png)
+![Gameplay Neon Air FX](img-neon-air-fx.png)
 
 # 🌟 Fitur
 
